@@ -3,6 +3,8 @@ import sys,os,subprocess
 import pathlib
 import argparse
 import configparser
+import logger
+import notifier
 
 if os.geteuid() != 0 or os.getuid() != 0 :
   print("このスクリプトの実行には、管理者権限が必要です。")
@@ -28,12 +30,7 @@ config = Config()
 class Main():
   def run(self,verbose):
 
-    logger = Logger(__name__,verbose)
-    notifier = Notifier()
-    notifier.add_slack('slack_webhook_url')
-    notifier.add_line('line_token')
-    notifier.add_local_mta('from@example.com','to@example.com')
-    notifier.add_gmail('from@example.com','to@example.com','gmail_id','gmail_mail_pw')
+    logger = logger.Logger(__name__,verbose)
 
     try:
       pass
@@ -56,5 +53,20 @@ if __name__ == '__main__':
   parser.add_argument("--verbose", action="store_true")
   args = parser.parse_args()
 
+  notifier = notifier.Notifier()
+  notifier.add_slack('slack_webhook_url')
+  notifier.add_line('line_token')
+  notifier.add_local_mta('from@example.com','to@example.com')
+  notifier.add_gmail('from@example.com','to@example.com','gmail_id','gmail_mail_pw')
+
   main = Main()
-  main.run(args.verbose)
+  (resultOK,msg) = main.run(args.verbose)
+  
+  if not resultOK:
+    print(f"Some error occurred: {msg}")
+    notifier.send(f"Failed to backup redmine: {msg}")
+    sys.exit(1)
+  else:
+    print("Succcessfully completed")
+    notifier.send("Succeeded to backup redmine")
+    sys.exit(0)
