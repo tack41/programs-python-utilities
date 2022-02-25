@@ -132,7 +132,7 @@ class Notifier:
       mime_app['Content-Disposition'] = f'attachment; filename="{attachment_path.name}"'
       mime_multi_part.attach(mime_app)
 
-    server = smtplib.SMTP(__external_mta_no_auth_smtp_server, 25)
+    server = smtplib.SMTP(self.__external_mta_no_auth_smtp_server, 25)
     server.send_message(mime_multi_part)
     server.quit()
 
