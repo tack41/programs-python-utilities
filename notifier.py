@@ -107,6 +107,35 @@ class Notifier:
     server.quit()
 
 
+  __use_external_mta_no_auth = False
+  __external_mta_no_auth_smtp_server = ''
+  __external_mta_no_auth_from_addr = ''
+  __external_mta_no_auth_to_addr = ''
+  def add_gmail(self, smtp_server: str, from_addr: str, to_addr: str):
+    self.__use_external_mta_no_auth = True
+    self.__external_mta_no_auth_from_addr = from_addr
+    self.__external_mta_no_auth_to_addr = to_addr
+
+  def __external_mta_no_auth(self,msg,attachment_path=None):
+    mime_multi_part = MIMEMultipart()
+    mime_multi_part.attach(MIMEText(msg))
+    mime_multi_part["Subject"] = msg[:self.__MAIL_SUBJECT_MAX_LENGTH]
+    mime_multi_part["To"] = self.__external_mta_no_auth_to_addr
+    mime_multi_part["From"] = self.__external_mta_no_auth_from_addr
+    if attachment_path is not None:
+      with open(attachment_path, "rb") as f:
+        mime_app = MIMEApplication(
+          f.read(),
+          Name=attachment_path.name
+        )
+      mime_app['Content-Disposition'] = f'attachment; filename="{attachment_path.name}"'
+      mime_multi_part.attach(mime_app)
+
+    server = smtplib.SMTP(__external_mta_no_auth_smtp_server, 25)
+    server.send_message(mime_multi_part)
+    server.quit()
+
+
   def send(self, msg: str, attachment_path: pathlib.Path=None):
     if self.__use_slack:
       self.__slack(msg)
@@ -116,3 +145,5 @@ class Notifier:
       self.__local_mta(msg,attachment_path)
     if self.__use_gmail:
       self.__gmail(msg,attachment_path)
+    if self.__use_external_mta_no_auth:
+      self.__external_mta_no_auth(msg,attachment_path)

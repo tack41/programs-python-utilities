@@ -28,7 +28,12 @@ config = Config()
 class Main():
   def run(self,verbose):
 
-    logger = Logger(__name__,verbose)
+    log_dir = script_dir.joinpath("log")
+    if not log_dir.exists():
+      os.makedirs(log_dir)
+    log_file = log_dir.joinpath(script_name_stem + ".log")
+    logger = lib.logger.Logger(__name__, verbose, log_file)
+
     notifier = Notifier()
     notifier.add_slack('slack_webhook_url')
     notifier.add_line('line_token')
