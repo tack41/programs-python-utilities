@@ -113,6 +113,7 @@ class Notifier:
   __external_mta_no_auth_to_addr = ''
   def add_eternal_mta_no_auth(self, smtp_server: str, from_addr: str, to_addr: str):
     self.__use_external_mta_no_auth = True
+    self.__external_mta_no_auth_smtp_server = smtp_server
     self.__external_mta_no_auth_from_addr = from_addr
     self.__external_mta_no_auth_to_addr = to_addr
 
