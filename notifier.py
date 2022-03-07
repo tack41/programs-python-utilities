@@ -9,7 +9,7 @@ from email.mime.multipart import MIMEMultipart
 
 class Notifier:
 
-  __MAIL_SUBJECT_MAX_LENGTH = 50
+  __MAIL_SUBJECT_MAX_LENGTH = 100
 
   __use_slack = False
   __slack_webhook_url = ''
