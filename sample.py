@@ -43,10 +43,10 @@ class Main():
 
       if(resultOK):
         logger.info("Succeeded")
-        notifier.succeeded('Succeeded')
+        notifier.succeeded('Succeeded','')
       else:
         logger.error(f"Failed: {msg}")
-        notifier.failed("Failed: {msg}")
+        notifier.failed("Failed",f"{msg}")
 
     except Exception as e:
       logger.exception(e)

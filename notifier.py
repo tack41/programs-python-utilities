@@ -17,8 +17,8 @@ class Notifier:
     self.__use_slack = True
     self.__slack_webhook_url = slack_webhook_url
 
-  def __slack(self,msg):
-    params = {"text": msg}
+  def __slack(self,subject,body):
+    params = {"text": f"{subject}\n{body}"}
     params_json = json.dumps(params)
     data = params_json.encode("utf-8")
     headers = {"Content-Type": "application/json"}
@@ -34,11 +34,11 @@ class Notifier:
     self.__use_line = True
     self.__line_token = token
 
-  def __line(self,msg):
+  def __line(self,subject,body):
     method = "POST"
     headers = {"Authorization": f"Bearer {self.__line_token}"}
 
-    payload = {"message": msg}
+    payload = {"message": f"{subject}\n{body}"}
     payload = urllib.parse.urlencode(payload).encode("utf-8")
     req = urllib.request.Request(
       url="https://notify-api.line.me/api/notify", data=payload, method=method, headers=headers)
@@ -53,10 +53,10 @@ class Notifier:
     self.__local_mta_from_addr = from_addr
     self.__local_mta_to_addr = to_addr
 
-  def __local_mta(self,msg,attachment_path=None):
+  def __local_mta(self,subject,body,attachment_path=None):
     mime_multi_part = MIMEMultipart()
-    mime_multi_part.attach(MIMEText(msg))
-    mime_multi_part["Subject"] = msg[:self.__MAIL_SUBJECT_MAX_LENGTH]
+    mime_multi_part.attach(MIMEText(body))
+    mime_multi_part["Subject"] = subject[:self.__MAIL_SUBJECT_MAX_LENGTH]
     mime_multi_part["To"] = self.__local_mta_to_addr
     mime_multi_part["From"] = self.__local_mta_from_addr
     if attachment_path is not None:
@@ -85,10 +85,10 @@ class Notifier:
     self.__gmail_id = id
     self.__gmail_pw = pw
 
-  def __gmail(self,msg,attachment_path=None):
+  def __gmail(self,subject,body,attachment_path=None):
     mime_multi_part = MIMEMultipart()
-    mime_multi_part.attach(MIMEText(msg))
-    mime_multi_part["Subject"] = msg[:self.__MAIL_SUBJECT_MAX_LENGTH]
+    mime_multi_part.attach(MIMEText(body))
+    mime_multi_part["Subject"] = subject[:self.__MAIL_SUBJECT_MAX_LENGTH]
     mime_multi_part["To"] = self.__gmail_to_addr
     mime_multi_part["From"] = self.__gmail_from_addr
     if attachment_path is not None:
@@ -117,10 +117,10 @@ class Notifier:
     self.__external_mta_no_auth_from_addr = from_addr
     self.__external_mta_no_auth_to_addr = to_addr
 
-  def __external_mta_no_auth(self,msg,attachment_path=None):
+  def __external_mta_no_auth(self,subject,body,attachment_path=None):
     mime_multi_part = MIMEMultipart()
-    mime_multi_part.attach(MIMEText(msg))
-    mime_multi_part["Subject"] = msg[:self.__MAIL_SUBJECT_MAX_LENGTH]
+    mime_multi_part.attach(MIMEText(body))
+    mime_multi_part["Subject"] = subject[:self.__MAIL_SUBJECT_MAX_LENGTH]
     mime_multi_part["To"] = self.__external_mta_no_auth_to_addr
     mime_multi_part["From"] = self.__external_mta_no_auth_from_addr
     if attachment_path is not None:
@@ -137,14 +137,14 @@ class Notifier:
     server.quit()
 
 
-  def send(self, msg: str, attachment_path: pathlib.Path=None):
+  def send(self, subject: str, body: str, attachment_path: pathlib.Path=None):
     if self.__use_slack:
-      self.__slack(msg)
+      self.__slack(subject,body)
     if self.__use_line:
-      self.__line(msg)
+      self.__line(subject,body)
     if self.__use_local_mta:
-      self.__local_mta(msg,attachment_path)
+      self.__local_mta(subject,body,attachment_path)
     if self.__use_gmail:
-      self.__gmail(msg,attachment_path)
+      self.__gmail(subject,body,attachment_path)
     if self.__use_external_mta_no_auth:
-      self.__external_mta_no_auth(msg,attachment_path)
+      self.__external_mta_no_auth(subject,body,attachment_path)
