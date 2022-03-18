@@ -86,7 +86,7 @@ class TestNotifier(unittest.TestCase):
       print("'config.email_from_gmail' or 'config.email_to_gmail' or 'config.email_id_gmail' or 'config.email_pw_gmail' are not defined. Skipping")
       return
     notifier = Notifier()
-    notifier.add_email(config.email_from_gmail,config.email_to_gmail,"smtp.gmail.com",587,config.email_id_gmail,config.email_pw_gmail,True)
+    notifier.add_email_by_gmail(config.email_from_gmail,config.email_to_gmail,config.email_id_gmail,config.email_pw_gmail)
     notifier.send("email(gmail) test","test message for mail(gmail)",attach_path)
 
     print(f"Check mail '{config.email_to_gmail}' for a test message")

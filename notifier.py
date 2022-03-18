@@ -14,6 +14,8 @@ class Notifier:
   __use_slack_webhook = False
   __slack_webhook_url = ''
   def add_slack_webhook(self, slack_webhook_url: str):
+    if self.__use_slack_webhook:
+      raise RuntimeError("Slack notification has already set. Duplicating.")
     self.__use_slack_webhook = True
     self.__slack_webhook_url = slack_webhook_url
 
@@ -32,6 +34,8 @@ class Notifier:
   __use_line = False
   __line_token = ''
   def add_line(self, token: str):
+    if self.__use_line:
+      raise RuntimeError("Line notification has already set. Duplicating.")
     self.__use_line = True
     self.__line_token = token
 
@@ -55,6 +59,8 @@ class Notifier:
   __email_auth_pw = ''
   __email_use_tls = True
   def add_email(self, from_addr: str, to_addr: str, smtp_server: str="localhost", smtp_server_port: int=25, auth_id: str='', auth_pw: str='', use_tls: bool=False):
+    if self.__use_email:
+      raise RuntimeError("e-Mail notification has already set. Duplicating.")
     self.__use_email = True
     self.__email_from_addr = from_addr
     self.__email_to_addr = to_addr
@@ -63,6 +69,9 @@ class Notifier:
     self.__email_auth_id = auth_id
     self.__email_auth_pw = auth_pw
     self.__email_use_tls = use_tls
+
+  def add_email_by_gmail(self, from_addr: str, to_addr: str, auth_id: str, auth_pw: str):
+    self.add_email(from_addr,to_addr,"smtp.gmail.com",587,auth_id,auth_pw,True)
 
   def __email(self,subject,body,attachment_path=None):
     mime_multi_part = MIMEMultipart()
