@@ -45,6 +45,48 @@ class Notifier:
     urllib.request.urlopen(req)
 
 
+  __use_email = False
+  __email_from_addr = ''
+  __email_to_addr = ''
+  __email_smtp_server = ''
+  __email_smtp_server_port = 0
+  __email_auth_id = ''
+  __email_auth_pw = ''
+  __email_use_tls = True
+  def add_email(self, from_addr: str, to_addr: str, smtp_server: str="localhost", smtp_server_port: int=25, auth_id: str='', auth_pw: str='', use_tls: bool=False):
+    self.__use_email = True
+    self.__email_from_addr = from_addr
+    self.__email_to_addr = to_addr
+    self.__email_smtp_server = smtp_server
+    self.__email_smtp_server_port = smtp_server_port
+    self.__email_auth_id = auth_id
+    self.__email_auth_pw = auth_pw
+    self.__email_use_tls = use_tls
+
+  def __email(self,subject,body,attachment_path=None):
+    mime_multi_part = MIMEMultipart()
+    mime_multi_part.attach(MIMEText(body))
+    mime_multi_part["Subject"] = subject[:self.__MAIL_SUBJECT_MAX_LENGTH]
+    mime_multi_part["To"] = self.__local_mta_to_addr
+    mime_multi_part["From"] = self.__local_mta_from_addr
+    if attachment_path is not None:
+      with open(attachment_path, "rb") as f:
+        mime_app = MIMEApplication(
+          f.read(),
+          Name=attachment_path.name
+        )
+      mime_app['Content-Disposition'] = f'attachment; filename="{attachment_path.name}"'
+      mime_multi_part.attach(mime_app)
+
+    server = smtplib.SMTP(self.__email_smtp_server, self.__email_smtp_server_port)
+    if self.__email_use_tls:
+      server.starttls()
+    if self.__email_auth_id:
+      server.login(self.__email_auth_id, self.__email_auth_pw)
+    server.send_message(mime_multi_part)
+    server.quit()
+
+
   __use_local_mta = False
   __local_mta_from_addr = ''
   __local_mta_to_addr = ''
@@ -148,3 +190,5 @@ class Notifier:
       self.__gmail(subject,body,attachment_path)
     if self.__use_external_mta_no_auth:
       self.__external_mta_no_auth(subject,body,attachment_path)
+    if self.__use_email
+      self.email(subject,body,attachment_path)

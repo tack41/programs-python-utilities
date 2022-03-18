@@ -17,38 +17,41 @@ class Config:
     config_secret_ini.read(script_dir.joinpath('conf').joinpath('config_secret.ini'), encoding='utf-8')
     self.slack_webhook_url = config_secret_ini.get('DEFAULT','slack_webhook_url')
     self.line_token = config_secret_ini.get('DEFAULT','line_token')
-    self.local_mta_from_addr = config_secret_ini.get('DEFAULT','local_mta_from_addr')
-    self.local_mta_to_addr = config_secret_ini.get('DEFAULT','local_mta_to_addr')
-    self.gmail_from_addr = config_secret_ini.get('DEFAULT','gmail_from_addr')
-    self.gmail_to_addr = config_secret_ini.get('DEFAULT','gmail_to_addr')
-    self.gmail_id = config_secret_ini.get('DEFAULT','gmail_id')
-    self.gmail_pw = config_secret_ini.get('DEFAULT','gmail_pw')
+    self.email_from_local = config_secret_ini.get('DEFAULT','email_from_local')
+    self.email_to_addr = config_secret_ini.get('DEFAULT','email_to_local')
 
 config = Config()
 
 class TestNotifier(unittest.TestCase):
   def test_slack(self):
-    """Slack通知のみ"""
+    """Slack通知"""
 
+    if not config.slack_webhook_url:
+      print("'slack_webhook_url' is not defined. Skipping")
+      return
     notifier = Notifier()
     notifier.add_slack(config.slack_webhook_url)
-    notifier.send("test message for slack")
+    notifier.send("Slack test","test message for slack")
 
     print("Check slack for a test message")
     self.assertTrue(True)
 
 
   def test_line(self):
-    """LINE通知のみ"""
+    """LINE通知"""
 
+    if not config.config.line_token:
+      print("'config.line_token' is not defined. Skipping")
+      return
     notifier = Notifier()
     notifier.add_line(config.line_token)
-    notifier.send("test message for line")
+    notifier.send("LINE test","test message for line")
 
     print("Check LINE for a test message")
     self.assertTrue(True)
 
 
+""""
   def test_local_mta(self):
     """localhost:25へのメールのみ"""
 
@@ -69,19 +72,41 @@ class TestNotifier(unittest.TestCase):
 
     print(f"Check Mail '{config.local_mta_to_addr}' for a test message")
     self.assertTrue(True)
+"""
 
+  def test_mail_local(self):
+    """email通知(local)"""
+
+    if (not config.config.email_from_local) or not (config.config.email_to_local):
+      print("'config.email_from_local' or 'config.email_to_local' are not defined. Skipping")
+      return
+    notifier = Notifier()
+    notifier.add_email(config.email_from_local,config.email_to_local)
+    notifier.send("test message for mail(local)")
+
+    print(f"Check mail '{config.email_to_local}' for a test message")
+    self.assertTrue(True)
 
   def test_all(self):
-    """slack,LINE,local_mta,gmailで送信"""
+    """slack,LINE,email(local)で送信"""
 
     notifier = Notifier()
-    notifier.add_slack(config.slack_webhook_url)
-    notifier.add_line(config.line_token)
-    notifier.add_local_mta(config.local_mta_from_addr, config.local_mta_to_addr)
-    notifier.add_gmail(config.local_mta_from_addr, config.local_mta_to_addr, config.gmail_id, config.gmail_pw)
-    notifier.send("test message for slack,LINE,local_mta,gmail",pathlib.Path(__file__))
+    if not config.slack_webhook_url:
+      print("'slack_webhook_url' is not defined. Skipping")
+    else:
+      notifier.add_slack(config.slack_webhook_url)
 
-    print(f"Check slack,LINE,local_mta({config.local_mta_to_addr  }),gmail({config.gmail_to_addr}) for a test message")
+    if not config.config.line_token:
+      print("'config.line_token' is not defined. Skipping")
+    else:
+      notifier.add_line(config.line_token)
+
+    if (not config.config.email_from_local) or not (config.config.email_to_local):
+      print("'config.email_from_local' or 'config.email_to_local' are not defined. Skipping")
+    else:
+      notifier.add_email(config.email_from_local,config.email_to_local)
+
+    print(f"Check slack,email(local({config.email_to_local})) for a test message")
     self.assertTrue(True)
 
 
