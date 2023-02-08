@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 
-def notify(smtp_server: str, smtp_port: int, use_tls: bool, auth_id: str, auth_pw: str, from_addr: str, to_addr:str, subject: str,body: str, attachment_path:pathlib.Path=None):
+def notify(from_addr: str, to_addr:str, subject: str,body: str, attachment_path:pathlib.Path=None, smtp_server: str="localhost", smtp_port: int=25, use_tls: bool=false, auth_id: str="", auth_pw: str=""):
     mime_multi_part = MIMEMultipart()
     mime_multi_part.attach(MIMEText(body))
     mime_multi_part["Subject"] = subject
