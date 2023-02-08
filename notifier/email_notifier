@@ -1,0 +1,25 @@
+import pathlib
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+
+def notify(smtp_server: str, smtp_port: int, use_tls: bool, auth_id: str, auth_pw: str, from_addr: str, to_addr:str, subject: str,body: str, attachment_path:pathlib.Path=None):
+    mime_multi_part = MIMEMultipart()
+    mime_multi_part.attach(MIMEText(body))
+    mime_multi_part["Subject"] = subject
+    mime_multi_part["To"] = to_addr
+    mime_multi_part["From"] = from_addr
+    if attachment_path is not None:
+        with open(attachment_path, "rb") as f:
+            mime_app = MIMEApplication(f.read(), Name=attachment_path.name)
+        mime_app['Content-Disposition'] = f'attachment; filename="{attachment_path.name}"'
+        mime_multi_part.attach(mime_app)
+
+    server = smtplib.SMTP(smtp_server, smtp_port)
+    if use_tls:
+        server.starttls()
+    if auth_id:
+        server.login(auth_id, auth_pw)
+    server.send_message(mime_multi_part)
+    server.quit()

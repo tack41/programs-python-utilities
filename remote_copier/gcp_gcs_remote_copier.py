@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Copy files from/to OCI object storage using OCI CLI
+"""Copy files from/to OCI object storage using Google Cloud Storage(GCS)
 
 Prerequisites:
-  * OCI CLI must be already installed.
-    https://docs.oracle.com/ja-jp/iaas/Content/API/SDKDocs/cliinstall.htm
-  * `oci setup config` command must have been run.
-  * The user configured with the `oci setup config` command 
-    must have read/write permission to the target bucket.
+  * Google Cloud CLI must be already installed.
+    https://cloud.google.com/sdk/docs/install
+  * `gcloud init` command must have been run.
+  * GCSにアクセスするアカウント(コンピューター/ユーザー)に対して、GCSの該当バケットの読み取り/書き込み権限を付与していること
 """
 
 import pathlib
@@ -14,28 +13,27 @@ import shlex
 import subprocess
 from typing import Tuple
 
-
-class OCIOSRemoteCopier:
-    """Copy files from/to OCI object storage using OCI CLI
+class GCIGCSRemoteCopier:
+    """Class Copy files from/to OCI object storage using OCI CLI
 
     Attributes:
         __bucket_name(str): Target bucket name.
     """
 
-    __oci_cmd: pathlib.Path
+    __gsutil_cmd: pathlib.Path
     __remote_dir: str = ""
     __bucket_name: str = ""
 
-    def __init__(self, oci_cmd: pathlib.Path, bucket_name: str, remote_dir: str):
+    def __init__(self, gsutil_cmd: pathlib.Path, bucket_name: str, remote_dir: str):
         """Constructor
 
         Args:
-          oci_bin: path of oci command
+          gsutil_cmd: path of gsutil command
           remote_dir(str): remote directory to be copied from. If root directory, specify blank.
           bucket_name(str): Target bucket name.
         """
 
-        self.__oci_cmd = oci_cmd
+        self.__gsutil_cmd = gsutil_cmd
 
         if len(remote_dir.strip()) != 0:
             self.__remote_dir = remote_dir.strip() + "/"
@@ -57,7 +55,7 @@ class OCIOSRemoteCopier:
         """
 
         for file in files:
-            cmd = f"{self.__oci_cmd} os object get --bucket-name {self.__bucket_name} --name {self.__remote_dir}{file} --file {local_dir.joinpath(file)}"
+            cmd = f"{self.__gsutil_cmd} cp gs://{self.__bucket_name}/{self.__remote_dir}{file} {local_dir.joinpath(file)}"
             res = subprocess.run(shlex.split(
                 cmd), capture_output=True, check=False)
             if res.returncode != 0:
@@ -65,7 +63,7 @@ class OCIOSRemoteCopier:
 
         return True, ""
 
-    def copy_to(self, local_dir: pathlib.Path, files: list[str]):
+    def copy_to(self, local_dir: pathlib.Path, files: list[str])-> Tuple[bool, str]:
         """Copy files to remote storage from local
 
         Args:
@@ -78,7 +76,7 @@ class OCIOSRemoteCopier:
         """
 
         for file in files:
-            cmd = f"{self.__oci_cmd} os object put --bucket-name {self.__bucket_name} --name {self.__remote_dir}{file} --file {local_dir.joinpath(file)} --force"
+            cmd = f"{self.__gsutil_cmd} cp  {local_dir.joinpath(file)} gs://{self.__bucket_name}/{self.__remote_dir}{file}"
             print(f"cmd: {cmd}")
             res = subprocess.run(shlex.split(
                 cmd), capture_output=True, check=False)
