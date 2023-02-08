@@ -79,7 +79,7 @@ class OCIOSRemoteCopier:
         """
 
         for file in files:
-            cmd = f"{self.__oci_cmd} os object put --bucket-name {self.__bucket_name} --name {self.__remote_dir}{file} --file {local_dir.joinpath(file)}"
+            cmd = f"{self.__oci_cmd} os object put --bucket-name {self.__bucket_name} --name {self.__remote_dir}{file} --file {local_dir.joinpath(file)} --force"
             print(f"cmd: {cmd}")
             res = subprocess.run(shlex.split(
                 cmd), capture_output=True, check=False)
